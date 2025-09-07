@@ -26,7 +26,7 @@ const UserProfileInfo = ({ user, posts, profileId, setShowEdit }) => {
                 {user.username ? `@${user.username}` : "Add a username"}
               </p>
             </div>
-            {/* If user is not on otehrs profile that means he is opening his profile so we will give edit button*/}
+            {/* If user is not on others profile that means he is opening his profile so we will give edit button*/}
             {!profileId && (
               <botton
                 onClick={() => setShowEdit(true)}
