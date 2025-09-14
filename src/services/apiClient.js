@@ -370,7 +370,7 @@ const mockApiClient = {
 };
 
 // Export the appropriate client based on environment
-const USE_MOCK_API = process.env.REACT_APP_USE_MOCK_API === 'true' || !process.env.REACT_APP_API_URL;
+const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API === 'true' || !import.meta.env.VITE_API_URL;
 
 export default USE_MOCK_API ? mockApiClient : apiClient;
 export { apiClient, mockApiClient };

@@ -29,6 +29,11 @@ const AUTH_ACTIONS = {
   OTP_VERIFIED: 'OTP_VERIFIED',
   SET_REMEMBER_EMAIL: 'SET_REMEMBER_EMAIL',
   RESTORE_AUTH: 'RESTORE_AUTH',
+  // NEW Account Management Actions
+  UPDATE_PROFILE_SUCCESS: 'UPDATE_PROFILE_SUCCESS',
+  PASSWORD_CHANGE_SUCCESS: 'PASSWORD_CHANGE_SUCCESS',
+  AVATAR_UPDATE_SUCCESS: 'AVATAR_UPDATE_SUCCESS',
+  ACCOUNT_DELETE_SUCCESS: 'ACCOUNT_DELETE_SUCCESS',
 };
 
 // Reducer function
@@ -134,6 +139,40 @@ const authReducer = (state, action) => {
         authState: action.payload.isAuthenticated ? AUTH_STATES.SUCCESS : AUTH_STATES.IDLE,
       };
 
+    // NEW Account Management Cases
+    case AUTH_ACTIONS.UPDATE_PROFILE_SUCCESS:
+      return {
+        ...state,
+        user: { ...state.user, ...action.payload.user },
+        isLoading: false,
+        error: null,
+        successMessage: 'Profile updated successfully!',
+      };
+
+    case AUTH_ACTIONS.PASSWORD_CHANGE_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        error: null,
+        successMessage: 'Password changed successfully!',
+      };
+
+    case AUTH_ACTIONS.AVATAR_UPDATE_SUCCESS:
+      return {
+        ...state,
+        user: { ...state.user, avatar: action.payload.avatar },
+        isLoading: false,
+        error: null,
+        successMessage: 'Profile picture updated successfully!',
+      };
+
+    case AUTH_ACTIONS.ACCOUNT_DELETE_SUCCESS:
+      return {
+        ...initialState, // Reset to initial state
+        isLoading: false,
+        successMessage: 'Account deleted successfully!',
+      };
+
     default:
       return state;
   }
@@ -175,6 +214,13 @@ export const AuthProvider = ({ children }) => {
   const setAuthState = (authState) => {
     dispatch({ type: AUTH_ACTIONS.SET_AUTH_STATE, payload: authState });
   };
+  // ✅ Add this directly below
+const setUser = (user) => {
+  dispatch({
+    type: user ? AUTH_ACTIONS.LOGIN_SUCCESS : AUTH_ACTIONS.LOGOUT,
+    payload: { user },
+  });
+};
 
   // Storage helper functions
   const saveToStorage = (key, value) => {
@@ -203,14 +249,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Auth action functions (mock implementations for now)
+  // EXISTING Auth action functions
   const login = async (credentials) => {
     try {
       setLoading(true);
       clearMessages();
 
       // Mock API call - replace with real API later
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 0)); // Simulate API delay reduced to 0ms
 
       // Mock successful login response
       const mockUser = {
@@ -341,6 +387,141 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // NEW Account Management Functions
+  const updateProfile = async (profileData) => {
+    try {
+      setLoading(true);
+      clearMessages();
+
+      // Mock API call - replace with real API later
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Mock successful update
+      const updatedUser = {
+        ...state.user,
+        ...profileData,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Update localStorage
+      saveToStorage(STORAGE_KEYS.USER_DATA, updatedUser);
+
+      dispatch({
+        type: AUTH_ACTIONS.UPDATE_PROFILE_SUCCESS,
+        payload: { user: updatedUser },
+      });
+
+      return { success: true, user: updatedUser };
+    } catch (error) {
+      setError(error.message || 'Profile update failed');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const changePassword = async (passwordData) => {
+    try {
+      setLoading(true);
+      clearMessages();
+
+      // Mock API call - replace with real API later
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // In real implementation, you would:
+      // 1. Verify current password
+      // 2. Hash new password on backend
+      // 3. Update password in database
+
+      dispatch({
+        type: AUTH_ACTIONS.PASSWORD_CHANGE_SUCCESS,
+      });
+
+      return { success: true };
+    } catch (error) {
+      setError(error.message || 'Password change failed');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const updateAvatar = async (avatarFile) => {
+    try {
+      setLoading(true);
+      clearMessages();
+
+      // Mock API call - replace with real API later
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Mock avatar URL (in real app, you'd upload to cloud storage)
+      const mockAvatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`;
+
+      const updatedUser = {
+        ...state.user,
+        avatar: mockAvatarUrl,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Update localStorage
+      saveToStorage(STORAGE_KEYS.USER_DATA, updatedUser);
+
+      dispatch({
+        type: AUTH_ACTIONS.AVATAR_UPDATE_SUCCESS,
+        payload: { avatar: mockAvatarUrl },
+      });
+
+      return { success: true, avatar: mockAvatarUrl };
+    } catch (error) {
+      setError(error.message || 'Avatar update failed');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const deleteAccount = async (confirmationData) => {
+    try {
+      setLoading(true);
+      clearMessages();
+
+      // Mock API call - replace with real API later
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // In real implementation, you would:
+      // 1. Verify user password/confirmation
+      // 2. Mark account as deleted or remove from database
+      // 3. Clean up user data, posts, etc.
+
+      // Clear all storage
+      removeFromStorage(STORAGE_KEYS.USER_DATA);
+      removeFromStorage(STORAGE_KEYS.AUTH_TOKEN);
+      removeFromStorage(STORAGE_KEYS.REFRESH_TOKEN);
+      removeFromStorage(STORAGE_KEYS.REMEMBER_EMAIL);
+
+      dispatch({
+        type: AUTH_ACTIONS.ACCOUNT_DELETE_SUCCESS,
+      });
+
+      return { success: true };
+    } catch (error) {
+      setError(error.message || 'Account deletion failed');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const requestPasswordReset = async (email) => {
+    try {
+      setLoading(true);
+      clearMessages();
+
+      // Mock API call - replace with real API later
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      setSuccessMessage('Password reset link sent to your email!');
+      setLoading(false);
+
+      return { success: true };
+    } catch (error) {
+      setError(error.message || 'Failed to send reset email');
+      return { success: false, error: error.message };
+    }
+  };
+
   const setRememberEmail = (email) => {
     dispatch({ type: AUTH_ACTIONS.SET_REMEMBER_EMAIL, payload: email });
     if (email) {
@@ -388,12 +569,19 @@ export const AuthProvider = ({ children }) => {
     // State
     ...state,
     
-    // Actions
+    // Existing Authentication Actions
     login,
     signup,
     logout,
     verifyOTP,
     resendOTP,
+    
+    // NEW Account Management Actions
+    updateProfile,
+    changePassword,
+    updateAvatar,
+    deleteAccount,
+    requestPasswordReset,
     
     // Helpers
     setLoading,
@@ -407,7 +595,11 @@ export const AuthProvider = ({ children }) => {
     saveToStorage,
     getFromStorage,
     removeFromStorage,
-  };
+
+     // ✅ Newly added
+  setUser,
+};
+  
 
   return (
     <AuthContext.Provider value={value}>

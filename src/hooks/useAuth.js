@@ -4,10 +4,12 @@ import { useAuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES, SUCCESS_MESSAGES } from '../utils/constants';
 import { validateLoginForm, validateSignupForm, validateOTP } from '../utils/validation';
+import { useEffect, useState } from 'react';
 
 const useAuth = () => {
   const authContext = useAuthContext();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true); // ✅ Added loading state
 
   const {
     // State
@@ -19,7 +21,7 @@ const useAuth = () => {
     successMessage,
     pendingVerificationEmail,
     rememberEmail,
-    
+
     // Context actions
     login: contextLogin,
     signup: contextSignup,
@@ -32,22 +34,36 @@ const useAuth = () => {
     setRememberEmail,
   } = authContext;
 
-  // Enhanced login function with validation and navigation
-  const login = async (formData, options = {}) => {
+  // ✅ Initial auth resolution (e.g., from localStorage or backend)
+  useEffect(() => {
+    const resolveAuth = async () => {
+      try {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser && !user) {
+          authContext.setUser(storedUser);
+        }
+      } catch (err) {
+        console.error('Auth resolution error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    resolveAuth();
+  }, []);
+
+  // ✅ Login function without redirect
+  const login = async (formData) => {
     try {
-      // Clear any existing messages
       clearMessages();
 
-      // Validate form data
       const validation = validateLoginForm(formData);
       if (!validation.isValid) {
-        // Set first error found
         const firstError = Object.values(validation.errors)[0][0];
         setError(firstError);
         return { success: false, errors: validation.errors };
       }
 
-      // Perform login
       const result = await contextLogin({
         email: formData.email,
         password: formData.password,
@@ -56,12 +72,7 @@ const useAuth = () => {
 
       if (result.success) {
         setSuccessMessage(SUCCESS_MESSAGES.LOGIN_SUCCESS);
-        
-        // Navigate after successful login
-        const redirectTo = options.redirectTo || ROUTES.DASHBOARD;
-        setTimeout(() => {
-          navigate(redirectTo);
-        }, 1000); // Small delay to show success message
+        // ❌ Removed navigate() to prevent flicker
       }
 
       return result;
@@ -72,62 +83,45 @@ const useAuth = () => {
     }
   };
 
-  // Enhanced signup function with validation and navigation
-const signup = async (formData) => {
-  try {
-    // Clear any existing messages
-    clearMessages();
-
-    // Validate form data
-    const validation = validateSignupForm(formData);
-    if (!validation.isValid) {
-      // Set first error found
-      const firstError = Object.values(validation.errors)[0][0];
-      setError(firstError);
-      return { success: false, errors: validation.errors };
-    }
-
-    // Perform signup
-    const result = await contextSignup({
-      fullName: formData.fullName,
-      email: formData.email,
-      password: formData.password,
-    });
-
-    // DEBUG: Let's see what the result actually contains
-    console.log('Signup result:', result);
-    console.log('Result success:', result.success);
-    console.log('Result error:', result.error);
-    console.log('Result errors:', result.errors);
-
-    // Check if signup was successful (account created)
-    // Sometimes the result might not have .success but still be successful
-    if (result.success || (!result.error && !result.errors)) {
-      setSuccessMessage(SUCCESS_MESSAGES.SIGNUP_SUCCESS);
-      
-      // Navigate to OTP verification
-      setTimeout(() => {
-        navigate(ROUTES.OTP_VERIFICATION);
-      }, 1500);
-      
-      return { success: true };
-    }
-
-    return result;
-  } catch (error) {
-    console.error('Signup error:', error);
-    setError(error.message || 'Signup failed');
-    return { success: false, error: error.message };
-  }
-};
-
-  // Enhanced OTP verification with validation
-  const verifyOTP = async (otpValue) => {
+  // Signup function (unchanged)
+  const signup = async (formData) => {
     try {
-      // Clear any existing messages
       clearMessages();
 
-      // Validate OTP
+      const validation = validateSignupForm(formData);
+      if (!validation.isValid) {
+        const firstError = Object.values(validation.errors)[0][0];
+        setError(firstError);
+        return { success: false, errors: validation.errors };
+      }
+
+      const result = await contextSignup({
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      console.log('Signup result:', result);
+
+      if (result.success || (!result.error && !result.errors)) {
+        setSuccessMessage(SUCCESS_MESSAGES.SIGNUP_SUCCESS);
+        setTimeout(() => navigate(ROUTES.OTP_VERIFICATION), 1500);
+        return { success: true };
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Signup error:', error);
+      setError(error.message || 'Signup failed');
+      return { success: false, error: error.message };
+    }
+  };
+
+  // OTP verification (unchanged)
+  const verifyOTP = async (otpValue) => {
+    try {
+      clearMessages();
+
       const validation = validateOTP(otpValue);
       if (!validation.isValid) {
         setError(validation.errors[0]);
@@ -139,16 +133,11 @@ const signup = async (formData) => {
         return { success: false, error: 'No pending verification' };
       }
 
-      // Perform OTP verification
       const result = await contextVerifyOTP(pendingVerificationEmail, otpValue);
 
       if (result.success) {
         setSuccessMessage(SUCCESS_MESSAGES.OTP_VERIFIED);
-        
-        // Navigate to dashboard
-        setTimeout(() => {
-          navigate(ROUTES.DASHBOARD);
-        }, 1500);
+        setTimeout(() => navigate(ROUTES.DASHBOARD), 1500);
       }
 
       return result;
@@ -159,7 +148,7 @@ const signup = async (formData) => {
     }
   };
 
-  // Enhanced resend OTP function
+  // Resend OTP (unchanged)
   const resendOTP = async () => {
     try {
       if (!pendingVerificationEmail) {
@@ -168,7 +157,7 @@ const signup = async (formData) => {
       }
 
       const result = await contextResendOTP(pendingVerificationEmail);
-      
+
       if (result.success) {
         setSuccessMessage(SUCCESS_MESSAGES.OTP_SENT);
       }
@@ -181,17 +170,15 @@ const signup = async (formData) => {
     }
   };
 
-  // Enhanced logout with navigation
+  // Logout (unchanged)
   const logout = async (options = {}) => {
     try {
       const result = await contextLogout();
-      
+
       if (result.success) {
         if (!options.silent) {
           setSuccessMessage(SUCCESS_MESSAGES.LOGOUT_SUCCESS);
         }
-        
-        // Navigate to login page
         const redirectTo = options.redirectTo || ROUTES.LOGIN;
         navigate(redirectTo);
       }
@@ -206,20 +193,17 @@ const signup = async (formData) => {
     }
   };
 
-  // Check if user has specific permissions (future enhancement)
+  // Helpers (unchanged)
   const hasPermission = (permission) => {
     if (!isAuthenticated || !user) return false;
-    // Add permission logic here when needed
     return true;
   };
 
-  // Get user display name
   const getUserDisplayName = () => {
     if (!user) return '';
     return user.fullName || user.email || 'User';
   };
 
-  // Get user initials for avatar
   const getUserInitials = () => {
     if (!user || !user.fullName) return 'U';
     return user.fullName
@@ -230,43 +214,40 @@ const signup = async (formData) => {
       .slice(0, 2);
   };
 
-  // Check if current route requires authentication
   const requiresAuth = (pathname) => {
     const publicRoutes = [ROUTES.LOGIN, ROUTES.SIGNUP, ROUTES.OTP_VERIFICATION, ROUTES.FORGOT_PASSWORD];
     return !publicRoutes.includes(pathname);
   };
 
-  // Redirect to login if not authenticated
   const redirectToLogin = (currentPath) => {
     navigate(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(currentPath)}`);
   };
 
-  // Auto-clear messages after timeout
   const clearMessagesWithTimeout = (timeout = 5000) => {
-    setTimeout(() => {
-      clearMessages();
-    }, timeout);
+    setTimeout(() => clearMessages(), timeout);
   };
 
+  // ✅ Final return with loading included
   return {
     // State
     user,
     isAuthenticated,
     isLoading,
+    loading,
     authState,
     error,
     successMessage,
     pendingVerificationEmail,
     rememberEmail,
 
-    // Enhanced actions
+    // Actions
     login,
     signup,
     logout,
     verifyOTP,
     resendOTP,
 
-    // Helper functions
+    // Helpers
     hasPermission,
     getUserDisplayName,
     getUserInitials,
@@ -280,7 +261,7 @@ const signup = async (formData) => {
     clearMessagesWithTimeout,
     setRememberEmail,
 
-    // Computed values
+    // Computed
     isLoggedIn: isAuthenticated && !!user,
     isEmailPending: !!pendingVerificationEmail,
     userName: getUserDisplayName(),

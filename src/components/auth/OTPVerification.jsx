@@ -10,7 +10,7 @@ import { ROUTES, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../utils/constants'
 const OTPVerification = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { verifyOTP, resendOTP, isLoading, error, successMessage, clearMessages, isAuthenticated } = useAuth();
+  const { verifyOTP, resendOTP, isLoading, error, successMessage, clearMessages } = useAuth();
   
   // Get email from location state or redirect to signup
   const email = location.state?.email || localStorage.getItem('otp_email');
@@ -25,13 +25,6 @@ const OTPVerification = () => {
       return;
     }
   }, [email, navigate]);
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate(ROUTES.DASHBOARD);
-    }
-  }, [isAuthenticated, navigate]);
 
   // OTP Hook configuration
   const {
@@ -49,8 +42,8 @@ const OTPVerification = () => {
       if (process.env.NODE_ENV === 'development') {
         if (otpValue === '123456') {
           console.log('Using dev success code');
-          // Simulate success
-          navigate(ROUTES.DASHBOARD);
+          // Simulate success and redirect to login
+          navigate(ROUTES.LOGIN);
           return;
         } else if (otpValue === '000000') {
           console.log('Using dev invalid code');
@@ -73,6 +66,9 @@ const OTPVerification = () => {
         const result = await verifyOTP(email, otpValue);
         if (!result.success) {
           resetOTP();
+        } else {
+          // Redirect to login after successful verification
+          navigate(ROUTES.LOGIN);
         }
       } catch (err) {
         console.error('OTP verification error:', err);
@@ -134,7 +130,7 @@ const OTPVerification = () => {
     if (process.env.NODE_ENV === 'development') {
       if (otpValue === '123456') {
         console.log('Dev mode: Success code entered');
-        navigate(ROUTES.DASHBOARD);
+        navigate(ROUTES.LOGIN);
         return;
       } else if (otpValue === '000000') {
         console.log('Dev mode: Invalid code entered');
@@ -152,6 +148,9 @@ const OTPVerification = () => {
       const result = await verifyOTP(email, otpValue);
       if (!result.success) {
         resetOTP();
+      } else {
+        // Redirect to login after successful verification
+        navigate(ROUTES.LOGIN);
       }
     } catch (err) {
       console.error('Manual OTP verification error:', err);
