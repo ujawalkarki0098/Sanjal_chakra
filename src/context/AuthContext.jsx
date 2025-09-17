@@ -1,7 +1,7 @@
-// src/context/AuthContext.js
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AUTH_STATES, STORAGE_KEYS, ERROR_MESSAGES } from '../utils/constants';
+import API from '../api/api.js'
 
 // Initial state
 const initialState = {
@@ -210,6 +210,9 @@ export const AuthProvider = ({ children }) => {
       clearMessages();
 
       // Mock API call - replace with real API later
+      let data;
+
+      data = await  API.post("auth/login",{credentials});
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
 
       // Mock successful login response
@@ -251,8 +254,11 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       clearMessages();
+      let data;
 
       // Mock API call - replace with real API later
+
+       data = await  API.post("auth/signup",{userData});
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
 
       dispatch({
