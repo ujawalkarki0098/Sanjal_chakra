@@ -100,7 +100,7 @@ const Login = () => {
        
       {/*Left side: Branding - EXACT COPY FROM OLD LOGIN*/}
       <div className='flex-1 flex flex-col items-start justify-between p-6 md:p-10 lg:pl-40'>
-        <img src={assets.logo} alt="" className='h-12 object-contain' />
+        <img src="" alt="" className='h-12 object-contain' />
         <div>
           <div className='flex items-center gap-3 mb-4 max-md:mt-10'>
                 <img src={assets.group_users} alt="" className='h-8 md:h-10'/>
@@ -108,7 +108,7 @@ const Login = () => {
                      <div className='flex'>
                           {Array(5).fill(0).map((_, i)=>(<Star key={i} className='size-4 md:size-4.5 text-transparent fill-amber-500'/>))}
                      </div>
-                     <p>Used by 12k+ developers</p>
+                     <p>Used by 12k+ Users</p>
                 </div>
           </div>
           <h1 className='text-3xl md:text-6xl md:pb-2 font-bold bg-gradient-to-r from-indigo-950 to-indigo-800 bg-clip-text text-transparent'>More than just friends truly connect</h1>

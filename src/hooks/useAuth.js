@@ -4,6 +4,7 @@ import { useAuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES, SUCCESS_MESSAGES } from '../utils/constants';
 import { validateLoginForm, validateSignupForm, validateOTP } from '../utils/validation';
+import {login} from '../api/api.js'
 
 const useAuth = () => {
   const authContext = useAuthContext();
@@ -46,6 +47,8 @@ const useAuth = () => {
         setError(firstError);
         return { success: false, errors: validation.errors };
       }
+      const response = await login(email, password);
+      response.formData;
 
       // Perform login
       const result = await contextLogin({

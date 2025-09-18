@@ -2,19 +2,47 @@ import React, { useState } from 'react'
 import { dummyUserData } from '../assets/assets'
 import { Image, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import  { createPost } from '../api/api.js'
 
 const CreatePost = () => {
 
   const [content, setContent] = useState('')
-  const [images, setImages] = useState([])
+  const [image, setImages] = useState([])
   const [loading, setLoading] = useState(false)
-
   const user = dummyUserData;
    
   const handleSubmit = async () => {
+    e.preventDefault();
+     if (!content.trim() && images.length === 0) {
+      toast.error("Please add some content or images to your post");
+      return;
+    }
+    
+    setLoading(true); // Set loading state
+    
+    const formData = new FormData();
+    formData.append("text", content);
+    
+    
+    image.forEach((image, index) => {
+      formData.append(`image_${index}`, image);
+    });
 
+    try {
+      const result = await createPost(formData);
+      console.log("Post created:", result);
+      toast.success("Post uploaded successfully!"); // Better to use toast instead of alert
+      
+      // Reset form after successful submission
+      setContent('');
+      setImages([]);
+    } catch (err) {
+      console.error("Error uploading post:", err);
+      toast.error("Failed to upload post");
+    } finally {
+      setLoading(false); // Reset loading state
+    }
   }
-
   return (
     <div className='min-h-screen bg-gradient-to-b from-slate-50 to-white'>
       <div className='max-w-6xl mx-auto p-6'>
@@ -25,6 +53,7 @@ const CreatePost = () => {
         </div>
 
         {/* Form */}
+        <form onSubmit={handleSubmit}>
         <div className='max-w-xl bg-white p-4 sm:pb-3 rounded-xl shadow-md space-y-4'>
               {/* Header */}
               <div className='flex items-center gap-3'>
@@ -37,7 +66,8 @@ const CreatePost = () => {
 
                {/* Textarea */}
                <textarea className='w-full resize-none max-h-20 mt-4 text-sm outline-none palceholder-gray-400'
-                placeholder="What's happening?"
+                placeholder="What's happening?" 
+                name= "text"
                 onChange={(e)=>setContent(e.target.value)} value={content}/>  
                 
                 {/* Images */}
@@ -63,19 +93,13 @@ const CreatePost = () => {
                  <input type="file" id="images" accept='image/*' hidden multiple 
                  onChange={(e)=>setImages([...images, ...e.target.files])}/>
 
-                 <button disabled={loading} onClick={()=> toast.promise(
-                  handleSubmit(),
-                  {
-                    loading: 'uploading ...',
-                    success: <p>Post Added</p>,
-                    error: <p>Post Not Added</p>,
-                  }
-                 )} className='text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white font-medium px-8 py-2 rounded-md cursor-pointer'>
+                 <button disabled={loading} type='submit' className='text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white font-medium px-8 py-2 rounded-md cursor-pointer'>
                   Publish Post
                  </button>
 
               </div>
         </div>
+        </form>
       </div>
     </div>
   )

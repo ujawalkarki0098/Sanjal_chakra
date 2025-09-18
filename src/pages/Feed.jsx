@@ -12,6 +12,8 @@ const Feed = () => {
   const fetchFeeds = async ()=> {
     setfeeds(dummyPostsData)
     setLoading(false)
+
+    
   }
 
   useEffect(()=>{

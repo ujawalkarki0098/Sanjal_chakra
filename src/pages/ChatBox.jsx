@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { dummyMessagesData, dummyUserData } from '../assets/assets'
 import { ImageIcon, SendHorizonal } from 'lucide-react'
+import { Phone, Video } from 'lucide-react'
 
 const ChatBox = () => {
 
@@ -26,6 +27,27 @@ const ChatBox = () => {
          <div>
           <p className='font-medium'>{user.full_name}</p>
           <p className='text-sm text-gray-500 -mt-1.5'>@{user.username}</p>
+
+          
+            {/* Call buttons */}
+   <div className="flex gap-3 ">
+      <button 
+        onClick={()=>console.log("Audio call started")}
+        className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600"
+      >
+        <Phone size={18} />
+      </button>
+
+      <button 
+        onClick={()=>console.log("Video call started")}
+        className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600"
+      >
+        <Video size={18} />
+      </button>
+   </div>
+
+
+
          </div>
       </div>
            <div className='p-5 md:px-10 h-full overflow-y-scroll'>
@@ -63,6 +85,7 @@ const ChatBox = () => {
                   }
                   <input type="file" id="image" accept="image/*" hidden onChange = {(e)=>setImage(e.target.files[0])}/>
                 </label>
+
 
                     <button onClick={sendMessage} className='bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-700 hover:to-purple-800 active:scale-95 cursor-pointer text-white p-2 rounded-full'>
                       <SendHorizonal size={18} />
